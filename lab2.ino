@@ -18,7 +18,11 @@
 #define TIMER5_ON_BIT PRTIM5;
 #define TIMER3_ON_BIT PRTIM3;
 
-
+//These values calculated using the formula in the datasheet
+int ORCA_VAL; //400 HZ
+//#define ORCA_VAL 124 //250 Hz 
+//#define ORCA_VAL 31250 silence
+//#define ORCA_VAL 38.5625 //400 HZ
 
 void setup() {
 // 1.1 Code
@@ -31,42 +35,42 @@ void setup() {
   DDRL |= DDL2; //activiating PA6, pin 47
   DDRL |= DDL0; //activating PA4, pin 49
   DDRL |= DDL1; //activating PA5, pin 48
-  
+    //Setting Pin 6 (timer pin) as an output
+  DDRH |= DDH3;
   //Setting up Timer 4 (Part 2)
   noInterrupts();
   TCCR4A = 0;
   TCCR4B = 0;
-  TCNT1 = 0;
-
-  ORC4A = 0; //Compare match register, look up... //change these values to change the frequency.
-  ORC4B = 0; //should be half of orc4a value for 50% duty cycle
-  TCCR4B |= (1 << WGM12); //CTC MODE
-  TCCR4B |= (1 << CS12); //Prescaler is basically frequency //CS is built in values
+  TCNT4H = 0;
+  TCNT4L = 0;
+  
+  OCR4A = orc_calc(400);//Compare match register, look up... //change these values to change the frequency.
+  //OCR4B = 38; //should be half of orc4a value for 50% duty cycle
+  TCCR4B |= (1 << WGM42); //CTC MODE
+  TCCR4B |= (1 << CS40); //Prescaler is basically frequency //CS is built in values  
+  //Prescalar set to 256 RN
 }
-
+int orc_calc(int freq) {
+  int orc_val;
+  orc_val = (16000000 / 2 * freq) - 1 ;
+  return orc_val; 
+}
 
 void loop() {
   //Code for Part 1.1 (Running LEDs on pins 47 - 49 in sequential order for 0.333 seconds each)
   //digWriteLEDs();
   //registerLEDs();
-
-  
-  
   
 }
 
 //This task manipulates the timers to output square wave
 void timersPart2() {
   //Part 2.3
-  //I want to generate square wave on OC4A --> AP:PH3, HW PIN: 6, ADP: 7  (labeled as pin 6 on the board)
+  //I want to generate square wave on OC4A --> ABSTRACT PORT:PH3, HW PIN: 6, ADP: 7  (labeled as pin 6 on the board)
   //CTC mode
   //What scaler I want
-  /*
-  WGMn3
-  WGMn2
-  WGMn1
-  WGMn0
-  */
+  
+  
 
 }
 
