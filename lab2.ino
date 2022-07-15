@@ -4,7 +4,7 @@
 #define DDL0 1 << 0 //49
 #define DDH3 1 << 3 //OCA4 output
 
-#define PORTH3 1 << 3
+//#define PORTH3 1 << 3
 #define PORTL2 1 << 2
 #define PORTL1 1 << 1
 #define PORTL0 1 << 0
@@ -36,19 +36,19 @@ void setup() {
   DDRL |= DDL0; //activating PA4, pin 49
   DDRL |= DDL1; //activating PA5, pin 48
     //Setting Pin 6 (timer pin) as an output
-  DDRH |= DDH3;
+  DDRH |= 1 << PORTH3;
   //Setting up Timer 4 (Part 2)
   noInterrupts();
   TCCR4A = 0;
   TCCR4B = 0;
-  TCNT4H = 0;
-  TCNT4L = 0;
-  
-  OCR4A = orc_calc(400);//Compare match register, look up... //change these values to change the frequency.
+
+  OCR4A = orc_calc(250);//Compare match register, look up... //change these values to change the frequency.
   //OCR4B = 38; //should be half of orc4a value for 50% duty cycle
+  TCCR4A |= (1 << COM4A0);
   TCCR4B |= (1 << WGM42); //CTC MODE
   TCCR4B |= (1 << CS40); //Prescaler is basically frequency //CS is built in values  
   //Prescalar set to 256 RN
+
 }
 int orc_calc(int freq) {
   int orc_val;
@@ -60,7 +60,8 @@ void loop() {
   //Code for Part 1.1 (Running LEDs on pins 47 - 49 in sequential order for 0.333 seconds each)
   //digWriteLEDs();
   //registerLEDs();
-  
+//  timersPart2();
+  timersPart2();
 }
 
 //This task manipulates the timers to output square wave
@@ -69,9 +70,10 @@ void timersPart2() {
   //I want to generate square wave on OC4A --> ABSTRACT PORT:PH3, HW PIN: 6, ADP: 7  (labeled as pin 6 on the board)
   //CTC mode
   //What scaler I want
-  
-  
-
+  while (1) {
+    PORTH &= ~(PORTH3);
+    PORTH |= PORTH3;
+  }
 }
 
 //Part 1.4 (Trying to do Part 1.1 without digitalWrite or pinMode)
