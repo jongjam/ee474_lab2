@@ -35,25 +35,33 @@ void setup() {
   DDRL |= DDL2; //activiating PA6, pin 47
   DDRL |= DDL0; //activating PA4, pin 49
   DDRL |= DDL1; //activating PA5, pin 48
-    //Setting Pin 6 (timer pin) as an output
+  
+   //Setting Pin 6 (timer pin) as an output
   DDRH |= 1 << PORTH3;
+
+
   //Setting up Timer 4 (Part 2)
   noInterrupts();
   TCCR4A = 0;
   TCCR4B = 0;
-
-  OCR4A = orc_calc(250);//Compare match register, look up... //change these values to change the frequency.
-  //OCR4B = 38; //should be half of orc4a value for 50% duty cycle
-  TCCR4A |= (1 << COM4A0);
+  TCNT4 = 0;
+  
+  OCR4A = 0;//Compare match register, look up... //change these values to change the frequency.
+  TCNT4 = 0;
+  TCCR4A |= (1 << COM4A0); //Toggling on compare match
   TCCR4B |= (1 << WGM42); //CTC MODE
-  TCCR4B |= (1 << CS40); //Prescaler is basically frequency //CS is built in values  
-  //Prescalar set to 256 RN
-
+  TCCR4B |= (1 << CS40); //Prescalar 1
+  
 }
-int orc_calc(int freq) {
-  int orc_val;
-  orc_val = (16000000 / 2 * freq) - 1 ;
-  return orc_val; 
+
+//int orc_calc(int freq) {
+//  int orc_val;
+//  orc_val = (16000000 / 2 * freq) - 1 ;
+//  return orc_val; 
+//}
+
+void orc_calc(int freq) {
+  OCR4A = (16000000 / 2 * freq) - 1 ;
 }
 
 void loop() {
@@ -70,9 +78,13 @@ void timersPart2() {
   //I want to generate square wave on OC4A --> ABSTRACT PORT:PH3, HW PIN: 6, ADP: 7  (labeled as pin 6 on the board)
   //CTC mode
   //What scaler I want
-  while (1) {
-    PORTH &= ~(PORTH3);
-    PORTH |= PORTH3;
+  //modulus
+  static int timer;
+  timer++;
+  if (timer % 4 == 0 ){
+    orc_calc(400);
+  } else { //0
+    orc_calc(0);
   }
 }
 
