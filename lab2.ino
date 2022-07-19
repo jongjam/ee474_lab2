@@ -72,7 +72,6 @@ void setup() {
   spiTransfer(OP_SCANLIMIT,7);
   spiTransfer(OP_DECODEMODE,0);
   spiTransfer(OP_SHUTDOWN,1);
-
 //  //Joystick setup
 //  DDRF &= ~(1 << DDF0); //Brown wire, X movement PE5
 //  DDRF &= ~(1 << DDF1); //Orange wire,y movement PE4
@@ -93,75 +92,130 @@ void loop() {
   //digWriteLEDs();
   //registerLEDs();
   //timersPart2();
-  int vert = analogRead(A0);
-  int horiz = analogRead(A1);
 
-  char x_move = map(horiz, 1021, 0,7,0); //The lights to be on
-  char y_move = map(vert , 1021, 0,0,7);
+  //timerPart3_1();
+  //LEDs_task3();
+  speakers_task2_4();
+}
 
-  Serial.print("X coord:");
-  Serial.print(horiz, DEC);
-  Serial.print("Y coord:");
-  Serial.print(vert, DEC);
+//This functions runs task A for 2 second
+//Task B for one cycle
+//No outups for 1
+//Repeat
+void timerPart3_1() {
+  static int time;
+  time++;
+  LEDs_task3(); //running task A and Task bB
+  speakers_task2_4(); //6000 because they take about 6 seconds to complete
+  if (time >= 7000) { //pausing for 1 second and resestting the timer
+    time = 0;
+  }
+  delay(1);
+  return;
 }
 
 //This task manipulates the timers to output square wave
-void timersPart2() {
-  //Part 2.3
-  //I want to generate square wave on OC4A --> ABSTRACT PORT:PH3, HW PIN: 6, ADP: 7  (labeled as pin 6 on the board)
-  //CTC mode
-  //What scaler I want
-  //modulus
-  static int timer;
-  if (timer % 4000 == 0 ){
+void speakers_task2_4() {
+  //Part 2.3/2.4
+  //I want to generate square wave on OC4A --> ABSTRACT PORT:PH3, HW PIN: 6, ADP: 7  (labeled as pin 6 on the board);
+  static int time = 0;
+  
+  time++;
+  if (time == 3000){
     orc_calc(400); //its running 400 HZ
-  }else if (timer % 4000 == 1) {
+  } 
+ 
+  if (time == 4000) {
     orc_calc(800); //800 Hz
-  } else if (timer % 4000 == 2) {
+  } 
+  
+  if (time == 5000) {
     orc_calc(250);
-  } else if (timer % 4000 == 3 {
-    orc_calc(0);
   }
-  delay(100);
-  timer++;
+  
+  if (time == 6000) {
+    orc_calc(0);
+    time = 0;
+  }
+  delay(1);
+  return;
 }
 
-//Part 1.4 (Trying to do Part 1.1 without digitalWrite or pinMode)
-    /*
-    * I need PINS 47, 48, 49 from the board. 
-    * 47, 48, 49 are all Port L
-    * 47 : PL2 
-    * 48 : PL1
-    * 49 : PL0
-    *
-    * Setting an input would look like DDRA &= ~(1 << DDB4);
-    *  
-    */
-//This is code functions the same as in the function digWriteLEDs but
-//does not utilize digital write
-void registerLEDs() {
-  //Pin 47
-  PORTL &= ~(PORTL2); //pin 47 low
-  delay(333);
-  PORTL |= PORTL2; //setting pin 47 to high
-  delay(333);
-  //Pin 48
-  PORTL &= ~(PORTL1); //pin 47 low
-  delay(333);
-  PORTL |= PORTL1; //setting pin 47 to high
-  delay(333);
-  //Pin 49
-  PORTL &= ~(PORTL0); //pin 47 low
-  delay(333);
-  PORTL |= PORTL0; //setting pin 47 to high
-  delay(333);
+//Same LED structure as Part 1.4, except runs only for 2 seconds at a time (not infinte).
+void LEDs_task3() {
+  static int time = 0;
+  time++;
+  if (time == 0) {
+    PORTL &= ~(PORTL2);
+    PORTL |= PORTL0;
+  }  
+  if (time == 500) {
+    PORTL |= PORTL2;
+    PORTL &= ~(PORTL1); 
+  }
+  if (time == 1000) {
+    PORTL &= ~(PORTL0);
+    PORTL |= PORTL1;
+  }
+  if (time == 1500) {
+    PORTL |= (PORTL0);
+    PORTL |= (PORTL1); 
+    PORTL |= (PORTL2);
+    time = 0;
+  }
+  delay(1);
+  return;
+}
+
+void timerPart3_2() {
+  static int time;
+  time++;
+  LEDs_task3();
+  speakers_task2_4();
+  taskC();
+  if (time >= 17000) {
+    time = 0;
+  }
+  delay(1);
+  return;
+}
+
+void taskC() {
+  static int time;
+  time++;
+  if (time == 5000) {
+  LEDs_task3();
+  speakers_task2_4();
+  } 
+  if (time >= 10000) {
+    time = 0;
+  }
+  delay(1);
+  return;
+}
+
+void registerLEDS_1_4() {
+  static int timer;
+  if (timer % 1000 == 0) {
+    PORTL &= ~(PORTL2);
+    PORTL |= PORTL0;
+  } else if (timer % 1000 == 333) {
+    PORTL |= PORTL2;
+    PORTL &= ~(PORTL1); 
+  } else if (timer % 1000 == 666) {
+    PORTL &= ~(PORTL0);
+    PORTL |= PORTL1;
+  }
+  
+  delay(100);
+  timer++;
 }
 
 void stick() {
   int vert = analogRead(A0);
   int horiz = analogRead(A1);
 
-   char x_move = map(horiz, 1021, 0,7,0); //The lights to be on
+  char x_move = map(horiz, 1021, 0,7,0); //The lights to be on
   char y_move = map(vert , 1021, 0,0,7);
 
   Serial.print("X coord:");
@@ -246,28 +300,6 @@ void spiTransfer(volatile byte opcode, volatile byte data){
     shiftOut(DIN,CLK,MSBFIRST,spidata[i-1]); //shift out 1 byte of data starting with leftmost bit
   digitalWrite(CS,HIGH);
 }
-
-/* Starter code for the LED display... Need to modify to include a slight timing delay and ALSO to use the ports dirrectly
- * void loop()
-{
-    for(int n = 0; n < 56; n++) //Send column scanning cycle data
-    {
-        for(int t=0;t<100;t++)  //Control data scrolling speed
-        {
-            for(int num=n; num < 8+n; num++)//8 columns of data sent to a dot matrix
-            {                       
-                shiftOut(dataPin,clockPin,MSBFIRST,data[num]); //Send column data to a dot matrix
-                shiftOut(dataPin,clockPin,MSBFIRST,tab[num-n]);//Send line data to a dot matrix
-                //The rising edge of the data shift
-                digitalWrite(latchPin,HIGH); //Output control latch HIGH  
-                PORTn |= portOfDataPin whatever it is...
-                digitalWrite(latchPin,LOW);  //Output control latch LOW
-            }
-        }
-    }
-}
- */
-
 
 //This is the code for part 1.1-1.2
 void digWriteLEDs() {
